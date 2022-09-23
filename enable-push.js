@@ -28,7 +28,7 @@ function initPush() {
     }
 
     if (localStorage.getItem('notification') === 'granted' || localStorage.getItem('notification') === 'denied') {
-        console.log(`The user ${ localStorage.getItem('notification') } the notifications`);
+        console.log(`The user ${ localStorage.getItem('notification') } to receive notifications`);
     }
 
     console.log(localStorage.getItem('subscribe') ? "The user is subscribed" : "The user isn't subscribed");
@@ -53,7 +53,7 @@ function initPush() {
             width: 50vw;
             height: 40vh;
             background: #ffffff;
-            box-shadow: 5px 5px 10px #000000;
+            box-shadow: 0px 0px 12px 4px #000000;
             transition: 200ms;
             z-index: 100;
         }
@@ -69,8 +69,9 @@ function initPush() {
         .btn-container {
             width: 100%;
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             align-items: center;
+            gap: 24px;
             padding: 1vh 0;
         }
 
@@ -97,7 +98,7 @@ function initPush() {
         }
 
         .show {
-            top: 2vh;
+            top: 1vh;
             transition: 200ms;
         }
 
@@ -107,8 +108,8 @@ function initPush() {
                 height: 20vh;
                 border-radius: 10px 10px 0 0;
                 box-shadow: 0 0 0 transparent;
-                border: solid #00000099 1px;
-                top: 100vh;
+                top: unset;
+                bottom: -20vh;
             }
 
             .notification-text {
@@ -121,7 +122,8 @@ function initPush() {
             }
 
             .show {
-                top: 80vh;
+                bottom: 0vh;
+                box-shadow: 0 0px 12px 4px #000000;
                 transition: 200ms;
             }
         }
