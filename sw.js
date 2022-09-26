@@ -1,0 +1,1 @@
+self.addEventListener("push",function(o){if(!(self.Notification&&self.Notification.permission==="granted")){console.log("notifications aren't supported or permission not granted!");return}if(o.data){var i=o.data.json();console.log(i),o.waitUntil(self.registration.showNotification(i.title,{body:i.body,icon:i.icon,actions:i.actions}))}});
