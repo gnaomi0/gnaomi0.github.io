@@ -1,4 +1,42 @@
-f();function f(){if(!1 in navigator){console.log("Service worker isn't supported.");return}if(!1 in window){console.log("Push notifications aren't supported.");return}navigator.serviceWorker.register("sw.js").then(()=>{console.log("Service worker installed!"),y()}).catch(t=>{console.log(t)})}function b(){if(!navigator.serviceWorker.ready)return;(localStorage.getItem("notification")==="granted"||localStorage.getItem("notification")==="denied")&&console.log(`The user ${localStorage.getItem("notification")} to receive notifications`),console.log(localStorage.getItem("subscribe")?"The user is subscribed":"The user isn't subscribed");let t=document.querySelector("head"),e=document.createElement("style");e.textContent=`
+initSW();
+
+function initSW() {
+    if (!"serviceWorker" in navigator) {
+        console.log("Service worker isn't supported.");
+        return;
+    }
+
+    if (!"PushManager" in window) {
+        console.log("Push notifications aren't supported.");
+        return;
+    }
+
+    // Register service worker
+    navigator.serviceWorker.register('sw.js')
+        .then(() => {
+            console.log('Service worker installed!');
+            isSubscribed();
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+}
+
+function initPush() {
+    if (!navigator.serviceWorker.ready) {
+        return;
+    }
+
+    if (localStorage.getItem('notification') === 'granted' || localStorage.getItem('notification') === 'denied') {
+        console.log(`The user ${ localStorage.getItem('notification') } to receive notifications`);
+    }
+
+    console.log(localStorage.getItem('subscribe') ? "The user is subscribed" : "The user isn't subscribed");
+
+    // Start Notification Prompt.
+    let headElement = document.querySelector('head');
+    let styleElement = document.createElement('style');
+    styleElement.textContent = `
         @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
         .prompt {
@@ -95,4 +133,182 @@ f();function f(){if(!1 in navigator){console.log("Service worker isn't supported
                 transition: 200ms;
             }
         }
-    `,t.appendChild(e);let o=document.querySelector("body"),n=document.createElement("div");n.classList.add("prompt");let i=document.createElement("p");i.classList.add("notification-text"),i.textContent=`\xBFDeseas recibir notificaciones de ${SITE}?`;let r=document.createElement("div");r.classList.add("btn-container");let c=document.createElement("div");c.classList.add("btn","btn-blue"),c.textContent="aceptar";let l=document.createElement("div");l.classList.add("btn","btn-red"),l.textContent="denegar",r.appendChild(l),r.appendChild(c),n.appendChild(i),n.appendChild(r),o.appendChild(n);let d=document.querySelector(".prompt"),u=document.querySelector(".btn-blue"),g=document.querySelector(".btn-red");localStorage.getItem("prompt")===null&&localStorage.getItem("subscribe")===null&&setTimeout(()=>{d.classList.toggle("show")},5e3),g.addEventListener("click",()=>{localStorage.setItem("prompt","dismissed"),localStorage.setItem("notification","denied"),d.classList.toggle("show"),console.log("Denied")}),u.addEventListener("click",()=>{localStorage.setItem("prompt","dismissed"),localStorage.setItem("notification","granted"),d.classList.toggle("show"),console.log("Granted"),new Promise(function(s,h){const p=Notification.requestPermission(function(m){s(m)});p&&p.then(s,h)}).then(s=>{if(s!=="granted")throw new Error("We weren't granted permission.");console.log("Subscribing user"),x()})})}function a(t){let e=String.fromCharCode.apply(null,t);return btoa(e)}function y(){navigator.serviceWorker.ready.then(t=>{t.pushManager.getSubscription().then(e=>{if(e!==null&&localStorage.getItem("subscribe")===null){let o=new Uint8Array(e.getKey("auth")),n=new Uint8Array(e.getKey("p256dh"));const i={endpoint:e.endpoint,expirationTime:e.expirationTime,siteKey:PUBLIC_KEY,url:document.URL,keys:{auth:a(o),p256dh:a(n)}};return console.log("Resubscribing user."),v(i)}console.log("Asking request from user."),b()})})}function x(){navigator.serviceWorker.ready.then(t=>{const e={userVisibleOnly:!0,applicationServerKey:PUBLIC_KEY};return t.pushManager.subscribe(e)}).then(t=>{let e=new Uint8Array(t.getKey("auth")),o=new Uint8Array(t.getKey("p256dh"));const n={endpoint:t.endpoint,expirationTime:t.expirationTime,siteKey:PUBLIC_KEY,url:document.URL,keys:{p256dh:a(o),auth:a(e)}};w(n)})}function w(t){localStorage.setItem("subscribe",!0),fetch({BASE_URL:"/build/",MODE:"production",DEV:!1,PROD:!0}.VITE_STORE_ENDPOINT,{method:"POST",body:JSON.stringify(t),headers:{Accept:"application/json","Content-Type":"application/json"}}).then(e=>e.json()).then(e=>{console.log(e)}).catch(e=>{console.log(e)})}function v(t){localStorage.setItem("subscribe",!0),fetch({BASE_URL:"/build/",MODE:"production",DEV:!1,PROD:!0}.VITE_RESUB_ENDPOINT,{method:"POST",body:JSON.stringify(t),headers:{Accept:"application/json","Content-Type":"application/json"}}).then(e=>e.json()).then(e=>{console.log(e)}).catch(e=>{console.log(e)})}
+    `;
+
+    headElement.appendChild(styleElement);
+
+    let body = document.querySelector('body');
+    let prompt = document.createElement('div');
+    prompt.classList.add('prompt');
+
+    let text = document.createElement('p');
+    text.classList.add('notification-text');
+    text.textContent = `¿Deseas recibir notificaciones de ${ SITE }?`;
+
+    let btnContainer = document.createElement('div');
+    btnContainer.classList.add('btn-container');
+
+    let btnAccept = document.createElement('div');
+    btnAccept.classList.add('btn', 'btn-blue');
+    btnAccept.textContent = "aceptar"
+
+    let btnDeny = document.createElement('div');
+    btnDeny.classList.add('btn', 'btn-red');
+    btnDeny.textContent = "denegar"
+
+    btnContainer.appendChild(btnDeny);
+    btnContainer.appendChild(btnAccept);
+    prompt.appendChild(text);
+    prompt.appendChild(btnContainer);
+    body.appendChild(prompt);
+    // End Notification Prompt.
+
+    let permissionPrompt = document.querySelector('.prompt');
+    let accept = document.querySelector('.btn-blue');
+    let deny = document.querySelector('.btn-red');
+
+    if (localStorage.getItem('prompt') === null && localStorage.getItem('subscribe') === null) {
+        setTimeout(() => {
+            permissionPrompt.classList.toggle('show');
+        }, 5000);
+    }
+
+    deny.addEventListener("click", () => {
+        localStorage.setItem('prompt', 'dismissed');
+        localStorage.setItem('notification', 'denied');
+        permissionPrompt.classList.toggle('show');
+        console.log('Denied');
+    })
+
+    accept.addEventListener("click", () => {
+        localStorage.setItem('prompt', 'dismissed');
+        localStorage.setItem('notification', 'granted');
+        permissionPrompt.classList.toggle('show');
+        console.log('Granted');
+
+        new Promise(function (resolve, reject) {
+            const permissionResult = Notification.requestPermission(function (result) {
+                resolve(result);
+            });
+
+            if (permissionResult) {
+                permissionResult.then(resolve, reject);
+            }
+            })
+            .then((permissionResult) => {
+                if (permissionResult !== 'granted') {
+                    throw new Error('We weren\'t granted permission.');
+                }
+                console.log("Subscribing user");
+                subscribeUser();
+            });
+    });
+}
+
+function toString (arr) {
+    let str = String.fromCharCode.apply(null, arr)
+    return btoa(str);
+}
+
+function isSubscribed() {
+    navigator.serviceWorker.ready
+        .then((registration) => {
+            registration.pushManager.getSubscription()
+                .then(getSub => {
+                    if (getSub !== null && localStorage.getItem('subscribe') === null) {
+                        let authArr = new Uint8Array(getSub.getKey('auth'));
+                        let p256Arr = new Uint8Array(getSub.getKey('p256dh'));
+
+                        const storedSubscription = {
+                            "endpoint": getSub.endpoint,
+                            "expirationTime": getSub.expirationTime,
+                            "siteKey": PUBLIC_KEY,
+                            "url": document.URL,
+                            "keys": {
+                                "auth": toString(authArr),
+                                "p256dh": toString(p256Arr)
+                            }
+                        }
+
+                        console.log("Resubscribing user.");
+                        return resubscribeUser(storedSubscription);
+                    }
+
+                    console.log("Asking request from user.");
+                    initPush();
+                });
+        });
+}
+
+function subscribeUser() {
+    navigator.serviceWorker.ready
+        .then((registration) => {
+            const subscribeOptions = {
+                userVisibleOnly: true,
+                applicationServerKey: PUBLIC_KEY
+            };
+
+            return registration.pushManager.subscribe(subscribeOptions);
+        })
+        .then((pushSubscription) => {
+            let authArr = new Uint8Array(pushSubscription.getKey('auth'));
+            let p256Arr = new Uint8Array(pushSubscription.getKey('p256dh'));
+
+            const subscription = {
+                "endpoint": pushSubscription.endpoint,
+                "expirationTime": pushSubscription.expirationTime,
+                "siteKey": PUBLIC_KEY,
+                "url": document.URL,
+                "keys": {
+                    "p256dh": toString(p256Arr),
+                    "auth": toString(authArr)
+                }
+            }
+
+            storePushSubscription(subscription);
+        });
+}
+
+function storePushSubscription(pushSubscription) {
+    localStorage.setItem('subscribe', true);
+
+    fetch(import.meta.env.VITE_STORE_ENDPOINT, {
+        method: 'POST',
+        body: JSON.stringify(pushSubscription),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    })
+        .then((res) => {
+            return res.json();
+        })
+        .then((res) => {
+            console.log(res);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+}
+
+function resubscribeUser(storedSubscription) {
+    localStorage.setItem('subscribe', true);
+
+    fetch(import.meta.env.VITE_RESUB_ENDPOINT, {
+          method: 'POST',
+          body: JSON.stringify(storedSubscription),
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+          }
+      })
+          .then((res) => {
+              return res.json();
+          })
+          .then((res) => {
+              console.log(res);
+          })
+          .catch((err) => {
+              console.log(err);
+          });
+}

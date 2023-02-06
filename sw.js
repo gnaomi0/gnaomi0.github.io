@@ -1,1 +1,25 @@
-let n;self.addEventListener("push",function(i){if(!(self.Notification&&self.Notification.permission==="granted")){console.log("Notifications aren't supported or permission not granted!");return}if(i.data){var t=i.data.json();return i.waitUntil(self.registration.showNotification(t.title,{body:t.body,icon:t.icon,actions:t.actions,tag:t.tag})),n=t.data.url}});self.addEventListener("notificationclick",function(i){return i.notification.close(),clients.openWindow(n)});
+let url;
+
+self.addEventListener('push', function (e) {
+  if (!(self.Notification && self.Notification.permission === 'granted')) {
+      console.log("Notifications aren't supported or permission not granted!");
+      return;
+  }
+
+  if (e.data) {
+      var msg = e.data.json();
+      e.waitUntil(self.registration.showNotification(msg.title, {
+        body: msg.body,
+        icon: msg.icon,
+        actions: msg.actions,
+        tag: msg.tag
+      }));
+
+      return url = msg.data.url;
+  }
+});
+
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  return clients.openWindow(url);
+});
